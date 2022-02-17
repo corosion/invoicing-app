@@ -56,5 +56,7 @@ return [
     ],
     'unique' => 'The :attribute has already been taken.',
     'url' => 'The :attribute format is invalid.',
-    'document_number' => 'Invalid document number :value'
+    'document_number' => 'Invalid document number :value',
+    'output_currency'=> 'Invalid output currency',
+    'default_currency' => 'No currency with exchange rate 1 provided'
 ];

@@ -4,10 +4,10 @@ namespace App\Model;
 
 /**
  * @property string $customer
- * @property string $vatNumber
- * @property string $documentNumber
+ * @property int $vat_number
+ * @property string $document_number
  * @property int $type
- * @property string $parent
+ * @property string $parent_document
  * @property string $currency
  * @property float $total
  */
@@ -21,13 +21,13 @@ class Invoice extends Model
      * @var array
      */
     protected $fillable = [
-        'customer',
-        'vatNumber',
-        'documentNumber',
-        'type',
-        'parent',
-        'currency',
-        'total',
+        'customer' => 'string',
+        'vat_number' => 'int',
+        'document_number' => 'string',
+        'type' => 'int',
+        'parent_document' => 'string',
+        'currency' => 'string',
+        'total' => 'float'
     ];
 
     /**
@@ -37,7 +37,7 @@ class Invoice extends Model
     {
         if (in_array($this->type, [Invoice::TYPE_INVOICE, Invoice::TYPE_DEBIT_NOTE])) {
             return +$this->total;
-        } else if ($this->type === Invoice::TYPE_CREDIT_NOTE) {
+        } elseif ($this->type === Invoice::TYPE_CREDIT_NOTE) {
             return -$this->total;
         }
 

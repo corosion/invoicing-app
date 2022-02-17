@@ -12,21 +12,7 @@ class Currency extends Model
      * @var array
      */
     protected $fillable = [
-        'name',
-        'rate'
+        'name' => 'string',
+        'rate' => 'float'
     ];
-
-    /**
-     * @param string $data
-     * @return array
-     */
-    public static function prepareData(string $data)
-    {
-        list($name, $rate) = explode(':', $data);
-
-        return [
-            'name' => $name,
-            'rate' => (float) $rate
-        ];
-    }
 }

@@ -29,7 +29,7 @@
     "phpstan/phpstan": "^1.4"
   },
   "scripts": {
-    "lint": "vendor/bin/phpcs app config",
+    "lint": "vendor/bin/phpcs app config --report=emacs",
     "analyse": "vendor/bin/phpstan analyse --memory-limit=2G",
     "serve": "php -S localhost:8005 -t public/"
   }

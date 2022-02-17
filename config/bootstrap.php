@@ -15,7 +15,7 @@ use Illuminate\Validation\Factory;
  */
 return static function (Container $container) {
     // Binds request to the service container as singleton and captures it
-    $container->singleton(Request::class, function() {
+    $container->singleton(Request::class, function () {
         return Request::capture();
     });
 
@@ -25,7 +25,7 @@ return static function (Container $container) {
     });
 
     // Bind Validation Factory to the service container
-    $container->bind('Illuminate\Translation\Translator', function (Container $container) {
+    $container->bind(Translator::class, function (Container $container) {
         $loader = $container->make(FileLoader::class, [
             'files' => $container->get(Filesystem::class),
             'path' => BASE_PATH . '/lang'
@@ -34,7 +34,7 @@ return static function (Container $container) {
     });
 
     // Bind Translator to the service container
-    $container->bind('Illuminate\Validation\Factory', function (Container $container) {
+    $container->bind(Factory::class, function (Container $container) {
         $translator = $container->make(Translator::class, [
             'loader' => $container->make(FileLoader::class, [
                 'files' => $container->get(Filesystem::class),
@@ -46,16 +46,6 @@ return static function (Container $container) {
         return new Factory($translator);
     });
 
-    // Bind Translator to the service container
-    $container->bind('validator', function (Container $container) {
-        $translator = $container->make(Translator::class, [
-            'loader' => $container->make(FileLoader::class, [
-                'files' => $container->get(Filesystem::class),
-                'path' => BASE_PATH . '/lang'
-            ]),
-            'locale' => 'en'
-        ]);
-
-        return new Factory($translator);
-    });
+    // Set Validation Factory alias as validator
+    $container->alias(Factory::class, 'validator');
 };

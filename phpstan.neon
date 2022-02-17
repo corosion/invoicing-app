@@ -1,0 +1,10 @@
+parameters:
+    bootstrapFiles:
+        - public/index.php
+    paths:
+        - app
+        - config
+    level: 8
+    ignoreErrors:
+    excludePaths:
+    checkMissingIterableValueType: false

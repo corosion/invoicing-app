@@ -8,10 +8,10 @@ define('BASE_PATH', dirname(__DIR__));
 require_once BASE_PATH . '/vendor/autoload.php';
 
 // Create a service container
-$container = new Container;
+$container = Container::getInstance();
 
-// Set up project dependencies
-(require_once BASE_PATH . '/config/dependencies.php')($container);
+// Set up project bootstrap dependencies
+(require_once BASE_PATH . '/config/bootstrap.php')($container);
 
 // Set up project routes
 (require_once BASE_PATH . '/config/routes.php')($container);

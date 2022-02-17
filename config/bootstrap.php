@@ -13,7 +13,7 @@ use Illuminate\Validation\Factory;
  * Setup application dependencies
  * @param Container $container
  */
-return function (Container $container) {
+return static function (Container $container) {
     // Binds request to the service container as singleton and captures it
     $container->singleton(Request::class, function() {
         return Request::capture();

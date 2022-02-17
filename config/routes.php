@@ -8,8 +8,10 @@ use App\Controller\InvoiceController;
 /**
  * Setup routes application routes
  * @param Container $container
+ * @throws \Psr\Container\ContainerExceptionInterface
+ * @throws \Psr\Container\NotFoundExceptionInterface
  */
-return function (Container $container) {
+return static function (Container $container) {
     $router = $container->get(Router::class);
 
     // Csv upload route

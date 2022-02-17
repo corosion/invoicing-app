@@ -14,12 +14,12 @@ use Illuminate\Validation\Factory;
  * @param Container $container
  */
 return function (Container $container) {
-    // Binds request to the container as singleton and captures it
+    // Binds request to the service container as singleton and captures it
     $container->singleton(Request::class, function() {
         return Request::capture();
     });
 
-    // Binds Router to the container as singleton
+    // Binds Router to the service container as singleton
     $container->singleton(Router::class, function (Container $container) {
         return new Router($container->get(Dispatcher::class), $container);
     });

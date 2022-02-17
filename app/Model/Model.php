@@ -2,7 +2,11 @@
 
 namespace App\Model;
 
-class Model
+use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Contracts\Support\Jsonable;
+
+class Model implements Arrayable
+
 {
     /**
      * @var array
@@ -14,19 +18,25 @@ class Model
      */
     protected $data;
 
+    /**
+     * Model constructor
+     */
     public function __construct()
     {
         $this->data = collect([]);
     }
 
     /**
+     * Set data property according to fillable
      * @param string $name
      * @param mixed $value
      * @return void
      */
     public function __set(string $name, $value)
     {
-        $this->data->put($name, $value);
+        if (in_array($name, $this->fillable)) {
+            $this->data->put($name, $value);
+        }
     }
 
     /**
@@ -39,31 +49,32 @@ class Model
     }
 
     /**
+     * Populate model data
      * @param array $data
      * @return \App\Model\Model
      */
     public function setData(array $data)
     {
         collect($data)->each(function ($value, $name) {
-            if (in_array($name, $this->fillable)) {
-                $this->{$name} = $value;
-            }
+            $this->{$name} = $value;
         });
 
         return $this;
     }
 
     /**
+     * return model data as collection
      * @return \Illuminate\Support\Collection|\Tightenco\Collect\Support\Collection
      */
     public function toCollection()
     {
         return $this->data->map(function ($var) {
-            return is_object($var) ? $var->toCollection() : $var;
+            return $var;
         });
     }
 
     /**
+     * return model data as array
      * @return array
      */
     public function toArray()

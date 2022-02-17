@@ -2,6 +2,9 @@
 
 namespace App\Controller;
 
+use App\Model\Currency;
+use App\Model\Invoice;
+use App\Service\Document;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Http\JsonResponse;
@@ -22,13 +25,23 @@ class InvoiceController
     protected $validation;
 
     /**
+     * @var \App\Service\Document
+     */
+    protected $document;
+
+    /**
      * @param \Illuminate\Validation\Factory $validation
      * @param \Illuminate\Translation\Translator $translator
+     * @param \App\Service\Document $document
      */
-    public function __construct(Factory $validation, Translator $translator)
-    {
+    public function __construct(
+        Factory $validation,
+        Translator $translator,
+        Document $document
+    ) {
         $this->validation = $validation;
         $this->translator = $translator;
+        $this->document = $document;
     }
 
     /**
@@ -41,6 +54,8 @@ class InvoiceController
     {
         // Create validator with file specific validations
         $validator = $this->validation->make($request->all(), [
+            'currency' => 'required|array|min:1',
+            'currency.*' => 'required|regex:/^([A-Z]){3}:[+-]?([0-9]*[.])?[0-9]+$/',
             'csv_file' => [
                 'required',
                 'file',
@@ -65,6 +80,30 @@ class InvoiceController
         $csv = Reader::createFromPath($request->allFiles()['csv_file']->path())
             ->setHeaderOffset(0);
 
+        $this->document->setData([
+            'currencies' => $request->get('currency'),
+            'invoices' => $csv->getRecords()
+        ]);
+
+        die();
+
+
+        $currencies = collect($request->get('currency'))->map(function ($currency) {
+            return (new Currency)->setData(Currency::prepareData($currency));
+        });
+
+        $defaultCurrency = $currencies->firstWhere('rate', 1);
+        var_dump($defaultCurrency);
+        die();
+        $invoices = collect($csv->getRecords())->map(function ($invoice) {
+            var_dump($invoice);
+            return (new Invoice())->setData($invoice);
+        });
+        var_dump(
+            $invoices[0]
+        );
+
+        die();
         // Populate the response from the csv records
         return $response->setData(
             collect($csv->getRecords())

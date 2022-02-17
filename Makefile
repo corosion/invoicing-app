@@ -18,4 +18,4 @@ analyse:
 
 .PHONY: serve
 serve:
-	php -S localhost:8005 -t public/
+	composer serve

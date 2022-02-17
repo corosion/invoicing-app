@@ -28,6 +28,7 @@
   },
   "scripts": {
     "lint": "vendor/bin/phpcs app config",
-    "analyse": "vendor/bin/phpstan analyse --memory-limit=2G"
+    "analyse": "vendor/bin/phpstan analyse --memory-limit=2G",
+    "serve": "php -S localhost:8005 -t public/"
   }
 }

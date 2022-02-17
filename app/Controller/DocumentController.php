@@ -12,7 +12,7 @@ use Illuminate\Translation\Translator;
 use Illuminate\Validation\Factory;
 use League\Csv\Reader;
 
-class InvoiceController
+class DocumentController
 {
     /**
      * @var \Illuminate\Translation\Translator
@@ -35,9 +35,9 @@ class InvoiceController
      * @param \App\Service\Document $document
      */
     public function __construct(
-        Factory $validation,
+        Factory    $validation,
         Translator $translator,
-        Document $document
+        Document   $document
     ) {
         $this->validation = $validation;
         $this->translator = $translator;
@@ -51,6 +51,40 @@ class InvoiceController
      * @throws \League\Csv\Exception
      */
     public function create(Request $request, JsonResponse $response)
+    {
+        // return validation errors on fail
+        if ($errors = $this->validateFile($request)) {
+            return $response
+                ->setStatusCode(Response::HTTP_BAD_REQUEST)
+                ->setData($errors);
+        }
+
+        // Read the csv file
+        $csv = Reader::createFromPath($request->allFiles()['csv_file']->path())
+            ->setHeaderOffset(0);
+
+        // Set invoices and currencies into document service
+        if ($errors = $this->document->setData([
+            'currencies' => $request->get('currency'),
+            'invoices' => $csv->getRecords()
+        ])) {
+            return $response
+                ->setStatusCode(Response::HTTP_BAD_REQUEST)
+                ->setData($errors);
+        }
+
+        // Populate the response from the csv records
+        return $response->setData(
+            $this->document->getTotals()
+        );
+    }
+
+    /**
+     * Validate csv file
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Support\MessageBag|void
+     */
+    protected function validateFile(Request $request)
     {
         // Create validator with file specific validations
         $validator = $this->validation->make($request->all(), [
@@ -71,43 +105,7 @@ class InvoiceController
 
         // return validation errors on fail
         if ($validator->fails()) {
-            return $response
-                ->setStatusCode(Response::HTTP_BAD_REQUEST)
-                ->setData($validator->errors());
+            return $validator->errors();
         }
-
-        // Read the csv file
-        $csv = Reader::createFromPath($request->allFiles()['csv_file']->path())
-            ->setHeaderOffset(0);
-
-        $this->document->setData([
-            'currencies' => $request->get('currency'),
-            'invoices' => $csv->getRecords()
-        ]);
-
-        die();
-
-
-        $currencies = collect($request->get('currency'))->map(function ($currency) {
-            return (new Currency)->setData(Currency::prepareData($currency));
-        });
-
-        $defaultCurrency = $currencies->firstWhere('rate', 1);
-        var_dump($defaultCurrency);
-        die();
-        $invoices = collect($csv->getRecords())->map(function ($invoice) {
-            var_dump($invoice);
-            return (new Invoice())->setData($invoice);
-        });
-        var_dump(
-            $invoices[0]
-        );
-
-        die();
-        // Populate the response from the csv records
-        return $response->setData(
-            collect($csv->getRecords())
-                ->values()
-        );
     }
 }

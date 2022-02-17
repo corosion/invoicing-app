@@ -3,7 +3,6 @@
 namespace App\Model;
 
 use Illuminate\Contracts\Support\Arrayable;
-use Illuminate\Contracts\Support\Jsonable;
 
 abstract class Model implements Arrayable
 {
@@ -33,7 +32,7 @@ abstract class Model implements Arrayable
      */
     public function __set(string $name, $value)
     {
-        if (in_array($name, $this->fillable)) {
+        if (in_array($name, array_keys($this->fillable))) {
             $this->data->put($name, $value);
         }
     }
@@ -55,7 +54,7 @@ abstract class Model implements Arrayable
     public function setData(array $data)
     {
         collect($data)->each(function ($value, $name) {
-            $this->{$name} = $value;
+            $this->{$name} = $this->castAttribute($name, $value);
         });
 
         return $this;
@@ -81,5 +80,37 @@ abstract class Model implements Arrayable
         return $this
             ->toCollection()
             ->toArray();
+    }
+
+    /**
+     * Cast an attribute to a native PHP type.
+     *
+     * @param string $name
+     * @param mixed $value
+     * @return mixed
+     */
+    protected function castAttribute(string $name, $value)
+    {
+        switch ($this->fillable[$name]) {
+            case 'int':
+            case 'integer':
+                return (int)$value;
+            case 'real':
+            case 'float':
+            case 'double':
+                return (float)$value;
+            case 'string':
+                return (string)$value;
+            case 'bool':
+            case 'boolean':
+                return (bool)$value;
+            case 'object':
+                return json_decode($value, true);
+            case 'array':
+            case 'json':
+                return json_decode($value);
+            default:
+                return $value;
+        }
     }
 }

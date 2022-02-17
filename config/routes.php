@@ -3,7 +3,7 @@
 use Illuminate\Container\Container ;
 use Illuminate\Routing\Router;
 use Illuminate\Http\Response;
-use App\Controller\DocumentController;
+use App\Controller\InvoiceController;
 
 /**
  * Setup routes application routes
@@ -15,7 +15,7 @@ return static function (Container $container) {
     $router = $container->get(Router::class);
 
     // Csv upload route
-    $router->post('document/create', [DocumentController::class, 'create']);
+    $router->post('invoice/create', [InvoiceController::class, 'create']);
 
     // Return 404 for when there is no match
     $router->any('{any}', function (Response $response) {

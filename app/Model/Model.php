@@ -5,8 +5,7 @@ namespace App\Model;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Jsonable;
 
-class Model implements Arrayable
-
+abstract class Model implements Arrayable
 {
     /**
      * @var array

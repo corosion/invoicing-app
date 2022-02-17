@@ -2,19 +2,19 @@
 
 namespace App\Controller;
 
-use App\Model\Currency;
 use App\Model\Invoice;
-use App\Service\Document;
+use App\Service\InvoiceService;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Illuminate\Translation\Translator;
 use Illuminate\Validation\Factory;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use League\Csv\Reader;
 
-class DocumentController
+class InvoiceController
 {
     /**
      * @var \Illuminate\Translation\Translator
@@ -27,39 +27,36 @@ class DocumentController
     protected $validation;
 
     /**
-     * @var \App\Service\Document
+     * @var \App\Service\InvoiceService
      */
-    protected $document;
+    protected $invoiceService;
 
     /**
      * @param \Illuminate\Validation\Factory $validation
      * @param \Illuminate\Translation\Translator $translator
-     * @param \App\Service\Document $document
+     * @param \App\Service\InvoiceService $document
      */
     public function __construct(
-        Factory    $validation,
-        Translator $translator,
-        Document   $document
-    )
-    {
+        Factory        $validation,
+        Translator     $translator,
+        InvoiceService $document
+    ) {
         $this->validation = $validation;
         $this->translator = $translator;
-        $this->document = $document;
+        $this->invoiceService = $document;
     }
 
     /**
      * @param \Illuminate\Http\Request $request
      * @param \Illuminate\Http\JsonResponse $response
      * @return \Illuminate\Http\JsonResponse|object
-     * @throws \League\Csv\Exception
+     * @throws \League\Csv\Exception|\Illuminate\Validation\ValidationException
      */
     public function create(Request $request, JsonResponse $response)
     {
         // return validation errors on fail
-        if ($errors = $this->validateFile($request)) {
-            return $response
-                ->setStatusCode(Response::HTTP_BAD_REQUEST)
-                ->setData($errors);
+        if ($errors = $this->validateInput($request)) {
+            throw ValidationException::withMessages($errors);
         }
 
         // Read the csv file
@@ -68,30 +65,28 @@ class DocumentController
 
         // return validation errors on fail
         if ($errors = $this->validateCSVData(collect($csv->getRecords()))) {
-            return $response
-                ->setStatusCode(Response::HTTP_BAD_REQUEST)
-                ->setData($errors);
+            throw ValidationException::withMessages($errors);
         }
 
         // Set invoices and currencies into document service
-        $this->document->setData([
+        $this->invoiceService->setData([
             'currencies' => $request->get('currency'),
             'invoices' => $csv->getRecords()
         ]);
 
         // Populate the response from the csv records
         return $response->setData([
-            'invoices' => $this->document->getInvoices()->toArray(),
-            'total' => $this->document->getTotals()
+            'invoices' => $this->invoiceService->getInvoices()->toArray(),
+            'total' => $this->invoiceService->getTotals($request->get('vat_number'))
         ]);
     }
 
     /**
      * Validate csv file
      * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Support\MessageBag|void
+     * @return array|false
      */
-    protected function validateFile(Request $request)
+    protected function validateInput(Request $request)
     {
         $validator = $this->validation->make($request->all(), [
             'currency' => 'required|array|min:1',
@@ -110,54 +105,63 @@ class DocumentController
         ]);
 
         if ($validator->fails()) {
-            return $validator->errors();
+            return $validator->errors()->toArray();
+        } else {
+            return false;
         }
     }
 
     /**
      * Validate csv document data
      * @param \Illuminate\Support\Collection $data
-     * @return \Illuminate\Support\Collection|void
+     * @return array|false
      */
     protected function validateCSVData(Collection $data)
     {
-        $errors = $data->map(function ($row, $number) use ($data) {
-            $validator = $this->validation->make($row, [
-                'Customer' => 'required',
-                'Vat number' => 'required',
-                'Document number' => 'required',
-                'Type' => [
-                    'required',
-                    Rule::in([
-                        Invoice::TYPE_INVOICE,
-                        Invoice::TYPE_CREDIT_NOTE,
-                        Invoice::TYPE_DEBIT_NOTE
-                    ])
-                ],
-                'Parent document' => [
-                    'nullable',
-                    function ($attribute, $value, $fail) use ($data) {
-                        if ($data->pluck('Document number')->search($value) === false) {
-                            $fail($this->translator->get('validation.document_number', [
-                                'value' => $value
-                            ]));
-                        }
+        $validator = $this->validation->make($this->csvDataKeysToSnake($data)->toArray(), [
+            '*.customer' => 'required',
+            '*.vat_number' => 'required',
+            '*.document_number' => 'required',
+            '*.type' => [
+                'required',
+                Rule::in([
+                    Invoice::TYPE_INVOICE,
+                    Invoice::TYPE_CREDIT_NOTE,
+                    Invoice::TYPE_DEBIT_NOTE
+                ])
+            ],
+            '*.parent_document' => [
+                'nullable',
+                function ($attribute, $value, $fail) use ($data) {
+                    if ($data->pluck('Document number')->search($value) === false) {
+                        $fail($this->translator->get('validation.document_number', [
+                            'value' => $value
+                        ]));
                     }
-                ],
-                'Currency' => 'required',
-                'Total' => 'required'
-            ]);
+                }
+            ],
+            '*.currency' => 'required',
+            '*.total' => 'required'
+        ]);
 
-            if ($validator->fails()) {
-                return [
-                    'rowNumber' => $number,
-                    'errors' => $validator->errors()
-                ];
-            }
-        })->filter()->values();
-
-        if ($errors->isNotEmpty()) {
-            return $errors;
+        if ($validator->fails()) {
+            return $validator->errors()->toArray();
+        } else {
+            return false;
         }
+    }
+
+    /**
+     * Convert csv data keys to snake case for validation
+     * @param \Illuminate\Support\Collection $data
+     * @return \Illuminate\Support\Collection
+     */
+    protected function csvDataKeysToSnake(Collection $data)
+    {
+        return $data->map(function ($row) {
+            return collect($row)->mapWithKeys(function ($value, $key) {
+                return [Str::snake($key) => $value];
+            });
+        });
     }
 }

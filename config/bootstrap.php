@@ -45,4 +45,17 @@ return static function (Container $container) {
 
         return new Factory($translator);
     });
+
+    // Bind Translator to the service container
+    $container->bind('validator', function (Container $container) {
+        $translator = $container->make(Translator::class, [
+            'loader' => $container->make(FileLoader::class, [
+                'files' => $container->get(Filesystem::class),
+                'path' => BASE_PATH . '/lang'
+            ]),
+            'locale' => 'en'
+        ]);
+
+        return new Factory($translator);
+    });
 };

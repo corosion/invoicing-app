@@ -31,14 +31,16 @@ class Invoice extends Model
     ];
 
     /**
-     * @return float|int
+     * @return float
      */
     public function getTotal()
     {
-        if($this->type !== Invoice::TYPE_CREDIT_NOTE) {
-            return + $this->total;
-        } else {
-            return - $this->total;
+        if (in_array($this->type, [Invoice::TYPE_INVOICE, Invoice::TYPE_DEBIT_NOTE])) {
+            return +$this->total;
+        } else if ($this->type === Invoice::TYPE_CREDIT_NOTE) {
+            return -$this->total;
         }
+
+        return $this->total;
     }
 }

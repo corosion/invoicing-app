@@ -6,7 +6,7 @@ use App\Model\Currency;
 use App\Model\Invoice;
 use Illuminate\Support\Collection;
 
-class Invoice
+class InvoiceService
 {
     /**
      * @var \Illuminate\Support\Collection
@@ -35,10 +35,10 @@ class Invoice
     }
 
     /**
-     * @param string $vatNumber
+     * @param string|null $vatNumber
      * @return \Illuminate\Support\Collection
      */
-    public function getTotals(string $vatNumber = '')
+    public function getTotals(string $vatNumber = null)
     {
         return $this->invoices
             ->filter(function ($invoice) use ($vatNumber) {
@@ -71,7 +71,7 @@ class Invoice
                 'currency' => $invoice['Currency'],
                 'parent' => $invoice['Parent document'] ?? null
             ]);
-        });
+        })->values();
     }
 
     /**

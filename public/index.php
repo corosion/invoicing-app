@@ -3,9 +3,17 @@
 use Illuminate\Container\Container;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Router;
+use Whoops\Run;
+use Whoops\Handler\PrettyPageHandler;
 
 define('BASE_PATH', dirname(__DIR__));
 require_once BASE_PATH . '/vendor/autoload.php';
+
+// Register whoops error handler
+(function() {
+    (new Run)->pushHandler(new PrettyPageHandler)
+        ->register();
+})();
 
 // Create a service container
 $container = Container::getInstance();

@@ -1,6 +1,6 @@
 <?php
 
-use Illuminate\Container\Container ;
+use Illuminate\Container\Container;
 use Illuminate\Routing\Router;
 use Illuminate\Http\Response;
 use App\Controller\InvoiceController;
@@ -13,6 +13,11 @@ use App\Controller\InvoiceController;
  */
 return static function (Container $container) {
     $router = $container->get(Router::class);
+
+    // Serving react app
+    $router->get('/', function () {
+        return file_get_contents(BASE_PATH . '/resources/index.html');
+    });
 
     // Csv upload route
     $router->post('invoice/create', [InvoiceController::class, 'create']);

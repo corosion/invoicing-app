@@ -1,5 +1,6 @@
 # Invoice App
-Invoicing application that returns user sum of user documents from csv file
+Invoicing application that returns user sum of user documents from csv file.<br/>
+Simple monolith structure with react and api is based on [laravel/components](https://github.com/illuminate) and ispired by [TORCH by TIGHTEN](https://github.com/mattstauffer/Torch)
 
 ## Table of content
 - [Folder Structure](#folder-structure)
@@ -7,24 +8,20 @@ Invoicing application that returns user sum of user documents from csv file
     - [Requirements](#requiremеnts)
     - [Installation](#installation)
     - [Serving the application](#serve)
-- [Configuration](#configuration)
-- [Coding style](./doc/STYLE.md)
-- [Testing](#testing)
-    - [Unit Tests](#unit-tests)
-    - [Integration Tests](#integration-tests)
+    - [Development](#development)
 - [Linting](#linting)
 - [Code Analyser](#code-analyser)
-- [CopyPaste Detector](#copypaste-detector)
 
 
 ## Folder structure
 ```
 ├── app
-│   ├── Controller - contains queue commands
-│   ├── Models - database data
-├── config - routes, dependencies
+│   ├── Controller - contains application controlers
+│   ├── Service - contains services that in out project wraps business logics
+│   ├── Model - contains data models 
+├── config - routes, dependencies, bootstrap
 ├── public - application entry point
-├── resources - css, js
+├── resources - css, js (react components)
 └── tests
 ```
 
@@ -32,9 +29,12 @@ Invoicing application that returns user sum of user documents from csv file
 
 ### Requiremеnts
 
-- In order to run the application you need php ^7.3|^8.0
-- In order to install the application you need [composer](#https://getcomposer.org/doc/)
-- In order to check application specific extensions use ` composer check-platform-reqs`
+In order to run the application you need:
+- PHP ^7.3|^8.0
+- PHP module `php-{dev,dom,json,mbstring,tokenizer,xml}`
+- node ^12.22
+- npm ^6.14
+- composer ^2.0 [composer](#https://getcomposer.org/doc/)
 
 ### Installation
 
@@ -54,3 +54,26 @@ composer install
 To run the application just use the following command:
 ```
 composer serve
+```
+
+### Development
+
+```
+npm run watch
+```
+
+## Linting
+
+[PHPCodeSniffer](https://github.com/squizlabs/PHP_CodeSniffer) is used for linting
+
+```sh
+composer run lint
+```
+
+## Code Analyser
+
+For Static Code Analysis Atlas uses [PHPStan](https://github.com/phpstan/phpstan)
+
+```sh
+composer run analyse
+```

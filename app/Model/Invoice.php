@@ -17,6 +17,12 @@ class Invoice extends Model
     const TYPE_CREDIT_NOTE = 2;
     const TYPE_DEBIT_NOTE = 3;
 
+    const TYPES = [
+        Invoice::TYPE_INVOICE => 'Invoice',
+        Invoice::TYPE_CREDIT_NOTE => 'Credit Note',
+        Invoice::TYPE_DEBIT_NOTE => 'Debit Note',
+    ];
+
     /**
      * @var array
      */

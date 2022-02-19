@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Model\Invoice;
 use App\Service\InvoiceService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -66,6 +67,7 @@ class InvoiceController
 
         // Populate the response from the csv records
         return $response->setData([
+            'invoiceTypes' => Invoice::TYPES,
             'invoices' => $this->invoiceService->getInvoices()->toArray(),
             'total' => $this->invoiceService->getTotals($request->get('vat_number'))
         ]);
@@ -87,7 +89,7 @@ class InvoiceController
                 'required',
                 'file',
                 function ($attribute, $value, $fails) {
-                    if ($value->getClientOriginalExtension() !== 'csv') {
+                    if ($value && $value->getClientOriginalExtension() !== 'csv') {
                         $fails($this->translator->get('validation.mimes', [
                             'values' => 'csv'
                         ]));

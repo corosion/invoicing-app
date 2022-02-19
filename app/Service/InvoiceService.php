@@ -69,24 +69,28 @@ class InvoiceService
     }
 
     /**
-     * @param string|null $vatNumber
+     * @param int|null $vatNumber
      * @return \Illuminate\Support\Collection
      */
-    public function getTotals(string $vatNumber = null)
+    public function getTotals(int $vatNumber = null)
     {
         return $this->invoices
             ->filter(function ($invoice) use ($vatNumber) {
-                return empty($vatNumber) || $invoice->vatNumber === $vatNumber;
+                return empty($vatNumber) || $invoice->vat_number === $vatNumber;
             })
             ->groupBy(function (Invoice $invoice) {
                 return $invoice->customer;
-            })->map(function (Collection $invoiceGroup) {
-                return $this->formatTotal(
-                    $invoiceGroup->reduce(function ($total, Invoice $invoice) {
-                        return $total + $this->covertTotal($invoice->getTotal(), $invoice->currency);
-                    })
-                );
-            });
+            })
+            ->map(function (Collection $invoiceGroup, $key) {
+                return [
+                    'customer' => $key,
+                    'total' => $this->formatTotal(
+                        $invoiceGroup->reduce(function ($total, Invoice $invoice) {
+                            return $total + $this->covertTotal($invoice->getTotal(), $invoice->currency);
+                        })
+                    )
+                ];
+            })->values();
     }
 
     /**

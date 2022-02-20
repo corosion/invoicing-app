@@ -86,7 +86,7 @@ class InvoiceService
                     'customer' => $key,
                     'total' => $this->formatTotal(
                         $invoiceGroup->reduce(function ($total, Invoice $invoice) {
-                            return $total + $this->covertTotal($invoice->getTotal(), $invoice->currency);
+                            return $total + $this->covertTotal($invoice->getTotal());
                         })
                     )
                 ];
@@ -222,13 +222,11 @@ class InvoiceService
 
     /**
      * @param float $sum
-     * @param string $from
      * @return float|int
      */
-    protected function covertTotal(float $sum, string $from)
+    protected function covertTotal(float $sum)
     {
-        $currency = $this->findCurrency('name', $from);
-        return $sum / $currency->rate;
+        return $sum / $this->defaultCurrency->rate / $this->outputCurrency->rate;
     }
 
     /**
@@ -237,7 +235,7 @@ class InvoiceService
      */
     protected function formatTotal(float $total)
     {
-        return sprintf('%s %s', number_format($total, 2), $this->defaultCurrency->name);
+        return sprintf('%s %s', number_format($total, 2), $this->outputCurrency->name);
     }
 
     /**

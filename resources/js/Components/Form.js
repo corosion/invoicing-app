@@ -9,13 +9,19 @@ import {Add} from 'grommet-icons'
 import {
   isEmpty, get, head,
   map, union, reduce,
-  forEach
+  forEach, has
 } from 'lodash'
 import axios from 'axios'
 import Invoices from './Invoices'
 import Total from './Total'
 
-const makeCurrency = (name, value) => `${name}:${value}`
+/**
+ * Format currency object
+ * @param name
+ * @param value
+ * @returns {`${string}:${string}`}
+ */
+const formatCurrency = ({name, value}) => `${name}:${value}`
 
 export default () => {
   const [total, setTotal] = useState([])
@@ -24,34 +30,50 @@ export default () => {
   const [currencies, setCurrencies] = useState([])
   const [errors, setErrors] = useState([])
 
+  /**
+   * Submits the currency form and collecting the data into currencies
+   * @param value
+   * @param target
+   */
   const submitCurrency = ({value, target}) => {
-    const currency = makeCurrency(get(value, 'name'), get(value, 'value'))
-    setCurrencies(old => [...old, currency])
+    setCurrencies(old => [...old, value])
     target.reset()
   }
 
+  /**
+   * Submits
+   * @param value
+   * @param target
+   */
   const onSubmit = ({value, target}) => {
     const formData = new FormData()
 
+    // populate the form data
     formData.append('csv_file', head(get(value, 'csv_file')))
-    forEach(currencies, currency => formData.append('currency[]', currency))
-    formData.append('output_currency', get(value, 'output_currency'))
+    if (has(value, 'vat_number'))
+      formData.append('vat_number', get(value, 'vat_number'))
+    forEach(currencies, currency => formData.append('currency[]', formatCurrency(currency)))
+    formData.append('output_currency', get(value, 'output_currency.name'))
 
+    // Make api call on form submit
     axios.post('http://localhost:8005/invoice/create', formData)
       .then(res => {
         const {total, invoices, invoiceTypes} = get(res, 'data', {})
 
+        // set document preview data and total calculations
         setTotal(total)
         setInvoices(invoices)
         setInvoiceTypes(invoiceTypes)
       })
-      .catch(({response}) => {
-        setErrors(reduce(
+      .catch(
+        // display server side errors
+        ({response}) => setErrors(reduce(
           get(response, 'data.errors'),
           (result, errors) => union(result, errors)
         ))
-      })
+      )
 
+    // clear form fields on submit
     target.reset()
   }
 
@@ -95,9 +117,14 @@ export default () => {
           </Box>
           <Button type="submit" primary label="Add" icon={<Add/>}/>
         </Form>
-        <Form validate="change" onSubmit={onSubmit}>
-          <FormField name="output_currency" required label="Output Currency">
-            <Select options={currencies} name="output_currency"/>
+        <Form validate="change" required onSubmit={onSubmit}>
+          <FormField name="output_currency" label="Output Currency">
+            <Select
+              options={currencies}
+              labelKey={formatCurrency}
+              valueKey="name"
+              name="output_currency"
+            />
           </FormField>
           <FormField name="vat_number" label="Vat Number">
             <TextInput name="vat_number"/>

@@ -11,6 +11,7 @@ Simple monolith structure with react and api is based on [laravel/components](ht
     - [Development](#development)
 - [Linting](#linting)
 - [Code Analyser](#code-analyser)
+- [Tests](#tests)
 
 
 ## Folder structure
@@ -48,6 +49,9 @@ cd invoicing-app
 ```
 composer install
 ```
+```
+npm install
+```
 
 ### Serve
 
@@ -72,8 +76,12 @@ composer run lint
 
 ## Code Analyser
 
-For Static Code Analysis Atlas uses [PHPStan](https://github.com/phpstan/phpstan)
+For Static Code Analysis uses [PHPStan](https://github.com/phpstan/phpstan)
 
 ```sh
 composer run analyse
 ```
+
+## Tests
+
+TBD

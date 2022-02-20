@@ -1,8 +1,8 @@
 import React from 'react'
 import {render} from 'react-dom'
-import InvoiceList from './Components/InvoiceList'
+import Form from './Components/Form'
 
 render(
-  <InvoiceList/>,
+  <Form/>,
   document.getElementById('app')
 )
